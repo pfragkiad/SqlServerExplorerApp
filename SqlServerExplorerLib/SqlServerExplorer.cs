@@ -131,35 +131,51 @@ public class SqlServerExplorer
     }
 
 
-
-
-
-    public async Task<DataTable> GetTopRecords(string connectionString, SqlServerTable table)
+    public async Task<int> GetRecordsCount(string connectionString, string table)
     {
-        return await Query(connectionString, $"select top 500 * from {table}");
+        return await QueryScalar<int>(connectionString, $"select count(*) from [{table}]");
+    }
+
+
+    public async Task<DataTable> GetTopRecords(string connectionString, SqlServerTable table, int count = 500)
+    {
+        return await Query(connectionString, $"select top {count} * from {table}");
     }
 
     public event EventHandler? LoadedData;
 
 
-    public async Task CopyTo(string sourceConnectionString, string targetConnectionString, SqlServerTable table)
+    #region Bulk copy operations
+
+    public int BatchSize { get; set; } = 0;
+
+    public int BulkCopyTimeoutInSeconds { get; set; } = 0;
+
+
+    public async Task CopyTo(string sourceConnectionString, string targetConnectionString, SqlServerTable table, string? destinationTableName = null)
     {
         DataTable data = await Query(sourceConnectionString, $"select * from {table}");
         LoadedData?.Invoke(this, new EventArgs());
-        await BulkCopyTo(targetConnectionString, data, table.ToString());
+        destinationTableName ??= table.ToString();
+        await CopyTo(targetConnectionString, data, destinationTableName);
     }
 
-    public async Task BulkCopyTo(string targetConnectionString, DataTable data, string destinationTableName)
+    public async Task CopyTo(string targetConnectionString, DataTable data, string destinationTableName)
     {
         using SqlConnection target = new(targetConnectionString);
         await target.OpenAsync();
         SqlBulkCopy copier = new(target)
         {
             DestinationTableName = destinationTableName,
-            BulkCopyTimeout = 0
+            BulkCopyTimeout = this.BulkCopyTimeoutInSeconds,
+            BatchSize = this.BatchSize
         };
         await copier.WriteToServerAsync(data);
     }
+
+    #endregion
+
+    #region Raw queries
 
     public async Task Execute(string connectionString, string sqlText)
     {
@@ -189,6 +205,7 @@ public class SqlServerExplorer
         }
         catch (Exception ex) { throw; }
     }
+   
     public async Task<T?> QueryScalar<T>(string connectionString, string sqlText)
     {
         using SqlConnection connection = new(connectionString);
@@ -197,6 +214,10 @@ public class SqlServerExplorer
         T? result = (T?)(await sql.ExecuteScalarAsync());
         return result;
     }
+
+    #endregion
+
+    #region Save to file operations
 
     public async Task<DataTable> QueryToFile(string connectionString, string sqlText, string targetFile, string fieldSeparator = ",")
     {
@@ -223,6 +244,6 @@ public class SqlServerExplorer
             }
         }
     }
-
+    #endregion
 }
 
