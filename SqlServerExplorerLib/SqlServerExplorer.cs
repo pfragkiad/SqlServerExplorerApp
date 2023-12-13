@@ -107,6 +107,9 @@ public class SqlServerExplorer
                 type = typeof(DateTimeOffset);
             else if (dataType == "uniqueidentifier")
                 type = typeof(Guid);
+            //byte -> data_type = "varbinary",character_maximum_length = -1, character_octet_length = -1
+            else if (dataType == "varbinary")
+                type = typeof(byte[]);
 
             if (type is null) throw new NotImplementedException($"Not implemented: {dataType}");
 
