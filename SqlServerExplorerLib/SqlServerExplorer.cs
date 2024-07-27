@@ -18,7 +18,6 @@ public class SqlServerExplorer
         }
         catch (Exception)
         {
-            //MessageBox.Show("Could not connect to source.", "GLEC", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
     }
@@ -177,37 +176,72 @@ public class SqlServerExplorer
 
     public async Task Execute(string connectionString, string sqlText)
     {
-        try
-        {
-            using SqlConnection source = new(connectionString);
-            SqlCommand sql = new(sqlText, source);
-            source.Open();
-            await sql.ExecuteNonQueryAsync();
-            source.Close();
-        }
-        catch (Exception ex) { throw; }
+        using SqlConnection source = new(connectionString);
+        SqlCommand sql = new(sqlText, source);
+        source.Open();
+        await sql.ExecuteNonQueryAsync();
+        source.Close();
+    }
+
+    public async Task Execute(string connectionString, string sqlText, params SqlParameter[] parameters)
+    {
+        using SqlConnection source = new(connectionString);
+        SqlCommand sql = new(sqlText, source);
+        source.Open();
+        sql.Parameters.AddRange(parameters);
+        await sql.ExecuteNonQueryAsync();
+        source.Close();
     }
 
     public async Task<DataTable> Query(string connectionString, string sqlText)
     {
-        try
-        {
-            using SqlConnection source = new(connectionString);
-            SqlCommand sql = new(sqlText, source);
-            SqlDataAdapter sqlDataAdapter = new(sql);
-            DataTable data = new();
-            data.BeginLoadData();
-            await Task.Run(() => sqlDataAdapter.Fill(data));
-            data.EndLoadData();
-            return data;
-        }
-        catch (Exception ex) { throw; }
+        using SqlConnection source = new(connectionString);
+        SqlCommand sql = new(sqlText, source);
+        SqlDataAdapter sqlDataAdapter = new(sql);
+        DataTable data = new();
+        data.BeginLoadData();
+        await Task.Run(() => sqlDataAdapter.Fill(data));
+        data.EndLoadData();
+        return data;
     }
-   
+
+    /*
+ categoriesAdapter.SelectCommand.Parameters.Add(
+    "@CategoryName", SqlDbType.VarChar, 80).Value = "toasters";
+  categoriesAdapter.SelectCommand.Parameters.Add(
+    "@SerialNum", SqlDbType.Int).Value = 239;
+  categoriesAdapter.Fill(categoriesDataSet);
+     */
+
+
+    public async Task<DataTable> Query(string connectionString, string sqlText, params SqlParameter[] parameters)
+    {
+        using SqlConnection source = new(connectionString);
+        SqlCommand sql = new(sqlText, source);
+        sql.Parameters.AddRange(parameters);
+
+        SqlDataAdapter sqlDataAdapter = new(sql);
+        DataTable data = new();
+        data.BeginLoadData();
+        await Task.Run(() => sqlDataAdapter.Fill(data));
+        data.EndLoadData();
+        return data;
+    }
+
     public async Task<T?> QueryScalar<T>(string connectionString, string sqlText)
     {
         using SqlConnection connection = new(connectionString);
         SqlCommand sql = new(sqlText, connection);
+        await connection.OpenAsync();
+        T? result = (T?)(await sql.ExecuteScalarAsync());
+        return result;
+    }
+
+    public async Task<T?> QueryScalar<T>(string connectionString, string sqlText, params SqlParameter[] parameters)
+    {
+        using SqlConnection connection = new(connectionString);
+        SqlCommand sql = new(sqlText, connection);
+        sql.Parameters.AddRange(parameters);
         await connection.OpenAsync();
         T? result = (T?)(await sql.ExecuteScalarAsync());
         return result;
