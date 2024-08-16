@@ -174,29 +174,38 @@ public class SqlServerExplorer
 
     #region Raw queries
 
-    public async Task Execute(string connectionString, string sqlText)
+    public async Task Execute(string connectionString, string sqlText, int? commandTimeoutInSeconds = 30)
     {
         using SqlConnection source = new(connectionString);
-        SqlCommand sql = new(sqlText, source);
+        SqlCommand sql = new(sqlText, source)
+        {
+            CommandTimeout = commandTimeoutInSeconds ?? 30
+        };
         source.Open();
         await sql.ExecuteNonQueryAsync();
         source.Close();
     }
 
-    public async Task Execute(string connectionString, string sqlText, params SqlParameter[] parameters)
+    public async Task Execute(string connectionString, string sqlText, SqlParameter[] parameters, int? commandTimeoutInSeconds = 30)
     {
         using SqlConnection source = new(connectionString);
         SqlCommand sql = new(sqlText, source);
+        sql.CommandTimeout = commandTimeoutInSeconds ?? 30;
         source.Open();
-        sql.Parameters.AddRange(parameters);
+        if (parameters is not null)
+            sql.Parameters.AddRange(parameters);
+
         await sql.ExecuteNonQueryAsync();
         source.Close();
     }
 
-    public async Task<DataTable> Query(string connectionString, string sqlText)
+    public async Task<DataTable> Query(string connectionString, string sqlText, int? commandTimeoutInSeconds = 30)
     {
         using SqlConnection source = new(connectionString);
-        SqlCommand sql = new(sqlText, source);
+        SqlCommand sql = new(sqlText, source)
+        {
+            CommandTimeout = commandTimeoutInSeconds ?? 30
+        };
         SqlDataAdapter sqlDataAdapter = new(sql);
         DataTable data = new();
         data.BeginLoadData();
@@ -214,11 +223,16 @@ public class SqlServerExplorer
      */
 
 
-    public async Task<DataTable> Query(string connectionString, string sqlText, params SqlParameter[] parameters)
+    public async Task<DataTable> Query(string connectionString, string sqlText, SqlParameter[] parameters, int? commandTimeOutInSeconds = 30)
     {
         using SqlConnection source = new(connectionString);
-        SqlCommand sql = new(sqlText, source);
-        sql.Parameters.AddRange(parameters);
+        SqlCommand sql = new(sqlText, source)
+        {
+            CommandTimeout = commandTimeOutInSeconds ?? 30
+        };
+
+        if (parameters is not null)
+            sql.Parameters.AddRange(parameters);
 
         SqlDataAdapter sqlDataAdapter = new(sql);
         DataTable data = new();
@@ -228,20 +242,29 @@ public class SqlServerExplorer
         return data;
     }
 
-    public async Task<T?> QueryScalar<T>(string connectionString, string sqlText)
+    public async Task<T?> QueryScalar<T>(string connectionString, string sqlText, int? commandTimeOutInSeconds = 30)
     {
         using SqlConnection connection = new(connectionString);
-        SqlCommand sql = new(sqlText, connection);
+        SqlCommand sql = new(sqlText, connection)
+        {
+            CommandTimeout = commandTimeOutInSeconds ??= 30
+        };
         await connection.OpenAsync();
         T? result = (T?)(await sql.ExecuteScalarAsync());
         return result;
     }
 
-    public async Task<T?> QueryScalar<T>(string connectionString, string sqlText, params SqlParameter[] parameters)
+    public async Task<T?> QueryScalar<T>(string connectionString, string sqlText, SqlParameter[] parameters, int? commandTimeOutInSeconds = 30)
     {
         using SqlConnection connection = new(connectionString);
-        SqlCommand sql = new(sqlText, connection);
-        sql.Parameters.AddRange(parameters);
+        SqlCommand sql = new(sqlText, connection)
+        {
+            CommandTimeout = commandTimeOutInSeconds ??= 30
+        };
+
+        if (parameters is not null)
+            sql.Parameters.AddRange(parameters);
+
         await connection.OpenAsync();
         T? result = (T?)(await sql.ExecuteScalarAsync());
         return result;
@@ -251,9 +274,9 @@ public class SqlServerExplorer
 
     #region Save to file operations
 
-    public async Task<DataTable> QueryToFile(string connectionString, string sqlText, string targetFile, string fieldSeparator = ",")
+    public async Task<DataTable> QueryToFile(string connectionString, string sqlText, string targetFile, string fieldSeparator = ",", int? commandTimeoutInSeconds = 30)
     {
-        var table = await Query(connectionString, sqlText);
+        var table = await Query(connectionString, sqlText,commandTimeoutInSeconds);
 
         SaveToFile(table, targetFile, fieldSeparator);
 
