@@ -6,13 +6,27 @@ namespace SqlServerExplorerLib;
 
 public class SqlServerExplorer
 {
-    public async Task<bool> TestConnection(string connectionString)
+    public async Task<bool> TestConnection(string connectionString, int? timeoutInSeconds = null)
     {
         try
         {
-            using SqlConnection connection = new SqlConnection(connectionString);
-            await connection.OpenAsync();
-            await connection.CloseAsync();
+            Task createConnectionTask = Task.Run(async () =>
+            {
+                using SqlConnection connection = new SqlConnection(connectionString);
+                await connection.OpenAsync();
+                await connection.CloseAsync();
+            });
+            Task timeoutTask = timeoutInSeconds is not null ? Task.Delay(timeoutInSeconds.Value * 1000) : Task.CompletedTask;
+
+            if (timeoutInSeconds is not null)
+            {
+                var taskFinished = await Task.WhenAny(createConnectionTask, timeoutTask);
+                bool isTimeout = taskFinished == timeoutTask || taskFinished.IsFaulted;
+                if (isTimeout)
+                    return false;
+            }
+            else
+                await createConnectionTask;
 
             return true;
         }
@@ -24,7 +38,7 @@ public class SqlServerExplorer
 
     public async Task<List<SqlServerTable>> GetTables(string connectionString)
     {
-        DataTable data = await Query(connectionString, "select TABLE_SCHEMA, TABLE_NAME from INFORMATION_SCHEMA.TABLES");
+        DataTable data = await Query(connectionString, "select TABLE_SCHEMA, TABLE_NAME from INFORMATION_SCHEMA.TABLES", 5);
 
         var tables = data.Rows.Cast<DataRow>().Select(r =>
             new SqlServerTable()
@@ -276,7 +290,7 @@ public class SqlServerExplorer
 
     public async Task<DataTable> QueryToFile(string connectionString, string sqlText, string targetFile, string fieldSeparator = ",", int? commandTimeoutInSeconds = 30)
     {
-        var table = await Query(connectionString, sqlText,commandTimeoutInSeconds);
+        var table = await Query(connectionString, sqlText, commandTimeoutInSeconds);
 
         SaveToFile(table, targetFile, fieldSeparator);
 

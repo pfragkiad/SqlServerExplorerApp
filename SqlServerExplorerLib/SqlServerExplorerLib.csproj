@@ -4,17 +4,17 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.3</Version>
+    <Version>1.4</Version>
     <Authors>Pavlos Fragkiadoulakis</Authors>
     <Company>Pavlos Fragkiadoulakis</Company>
-    <Copyright>(c) 2023 Paulus Stuff</Copyright>
+    <Copyright>(c) 2023-2024 Paulus Stuff</Copyright>
     <Description>The easiest to way to do low-level SQL server operations, such as viewing a table fields, copying table data to a file, or copying table data between databases. See README.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>sql server;datatable;db to txt;explorer</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>1.3</AssemblyVersion>
-    <FileVersion>1.3</FileVersion>
+    <AssemblyVersion>1.4</AssemblyVersion>
+    <FileVersion>1.4</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
