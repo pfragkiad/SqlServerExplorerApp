@@ -36,9 +36,9 @@ public class SqlServerExplorer
         }
     }
 
-    public async Task<List<SqlServerTable>> GetTables(string connectionString)
+    public async Task<List<SqlServerTable>> GetTables(string connectionString, int? timeoutInSeconds = null)
     {
-        DataTable data = await Query(connectionString, "select TABLE_SCHEMA, TABLE_NAME from INFORMATION_SCHEMA.TABLES", 5);
+        DataTable data = await Query(connectionString, "select TABLE_SCHEMA, TABLE_NAME from INFORMATION_SCHEMA.TABLES", timeoutInSeconds);
 
         var tables = data.Rows.Cast<DataRow>().Select(r =>
             new SqlServerTable()
@@ -50,26 +50,27 @@ public class SqlServerExplorer
         return tables;
     }
 
-    public async Task<bool> TableExists(string connectionString, string tableName)
+    public async Task<bool> TableExists(string connectionString, string tableName, int? timeoutInSeconds = null)
     {
-        int? result = await QueryScalar<int?>(connectionString, $"select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{tableName}'");
+        int? result = await QueryScalar<int?>(connectionString, $"select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{tableName}'",timeoutInSeconds);
         return result == 1;
     }
-    public async Task<bool> IsTableEmpty(string connectionString, string tableName)
+    
+    public async Task<bool> IsTableEmpty(string connectionString, string tableName, int? timeoutInSeconds = null)
     {
-        int count = await QueryScalar<int>(connectionString, $"select count(*) from (select top 1 * from [{tableName}]) A");
+        int count = await QueryScalar<int>(connectionString, $"select count(*) from (select top 1 * from [{tableName}]) A",timeoutInSeconds);
         return count == 0;
     }
 
-    public async Task TruncateTable(string connectionString, string tableName)
+    public async Task TruncateTable(string connectionString, string tableName, int? timeoutInSeconds = null)
     {
-        await Execute(connectionString, $"truncate table [{tableName}]");
+        await Execute(connectionString, $"truncate table [{tableName}]",timeoutInSeconds);
     }
 
 
-    public async Task<List<SqlServerField>> GetFields(string connectionString, SqlServerTable table)
+    public async Task<List<SqlServerField>> GetFields(string connectionString, SqlServerTable table, int? timeoutInSeconds  = null)
     {
-        DataTable data = await Query(connectionString, $"select COLUMN_NAME, ORDINAL_POSITION, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{table.Name}' AND TABLE_SCHEMA=N'{table.Schema}'");
+        DataTable data = await Query(connectionString, $"select COLUMN_NAME, ORDINAL_POSITION, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{table.Name}' AND TABLE_SCHEMA=N'{table.Schema}'",timeoutInSeconds);
 
         List<SqlServerField> fields = new List<SqlServerField>();
         foreach (DataRow r in data.Rows.Cast<DataRow>())
