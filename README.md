@@ -266,7 +266,7 @@ public class MyService : SqlServerService
         const string sql = "select stats.Count, stats.Average from stats where client=@client and year=@year";
       
       DataTable dataTable = await GetDataTable( sql,
-        parameters: ("@clientName", clientName), ("@year", year));
+        parameters: ("@client", client), ("@year", year));
 
         List<ClientYearStats> stats = [.. dataTable.AsEnumerable().Select(r => new ClientYearStats
         {
