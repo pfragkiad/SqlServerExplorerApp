@@ -245,10 +245,9 @@ await sql.CopyTo(cs, targetConnectionString: "other_database_string", table: myT
 
 The class is the most low-level way to interact with the database in an asynchronous way. It provides the following methods:
 
-- `GetDataTable`,  `GetDataSet`, `GetScalar`, `GetList`, `GetStringList`, `GetSingleRow` for querying the database.
-- `TableToList`, `TableToStringList`, `TableToStringArray` static utility methods.
+- `GetDataTable`,  `GetDataSet`, `GetScalar`, `GetList`, `GetStringList`, `GetSingleRow`
 
-To use this class we need to derive a class from it as shown in the example below:
+To use this class we need to derive a class from it, as shown in the example below:
 
 ```cs
 
