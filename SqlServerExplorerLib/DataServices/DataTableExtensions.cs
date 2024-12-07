@@ -3,7 +3,7 @@ using System.Data;
 
 namespace SqlServerExplorerLib.DataServices;
 
-internal static class DataTableExtensions
+public static class DataTableExtensions
 {
 
     public static List<T?> ToList<T>(this DataTable table) where T : struct
