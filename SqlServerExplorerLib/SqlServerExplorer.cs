@@ -12,7 +12,7 @@ public class SqlServerExplorer
         {
             Task createConnectionTask = Task.Run(async () =>
             {
-                using SqlConnection connection = new SqlConnection(connectionString);
+                using SqlConnection connection = new(connectionString);
                 await connection.OpenAsync();
                 await connection.CloseAsync();
             });

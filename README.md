@@ -241,5 +241,46 @@ await sql.CopyTo(cs, data, destinationTableName: "OTHER_TABLE");
 await sql.CopyTo(cs, targetConnectionString: "other_database_string", table: myTable, destinationTableName: "TARGET_TABLE");
 ```
 
+## SqlServerService
+
+The class is the most low-level way to interact with the database in an asynchronous way. It provides the following methods:
+
+- `GetDataTable`,  `GetDataSet`, `GetScalar`, `GetList`, `GetStringList`, `GetSingleRow` for querying the database.
+- `TableToList`, `TableToStringList`, `TableToStringArray` static utility methods.
+
+To use this class we need to derive a class from it as shown in the example below:
+
+```cs
+
+public readonly struct ClientYearStats
+{
+    public int Count { get; init; }
+    punlic float Average { get; init; }
+}
+
+public class MyService : SqlServerService
+{
+    public MyService(string connectionString) : base(connectionString) { }
+
+    public async Task<Stats> GetStats(string client, int year)
+    {
+        const string sql = "select stats.Count, stats.Average from stats where client=@client and year=@year";
+      
+      DataTable dataTable = await GetDataTable( sql,
+            ("@clientName", clientName), ("@year", year));
+
+        List<ClientYearStats> stats = [.. dataTable.AsEnumerable().Select(r => new ClientYearStats
+        {
+            Count = r.Field<int>("Count"),
+            Average = r.Field<float>("Average")
+        }).ToList();
+        
+        return stats;
+     }
+
+}
+```
+
+Note that the example above, *does not use Reflection* which is the case for common libraries such as  `Dapper` to automatically map the fields to the struct. This makes the current example AOT safe.
 
 ## STAY TUNED
