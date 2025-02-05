@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.Security.Cryptography;
 
 namespace SqlServerExplorerLib.DataServices;
 
@@ -38,6 +39,15 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         DataTable table = await GetDataTable(sql, timeoutInSeconds, parameters: [("@tableName", tableName), ("@tableSchema", tableSchema)]);
         return table.Rows.Count > 0;
     }
+
+    protected async Task<string> GetTempTableName(string prefix= "temp", int? timeoutInSeconds = null)
+    {
+        string tempTableName = $"{prefix}_{Guid.NewGuid().ToString().Replace("-", "")}";
+        while (await TableExists(tempTableName, timeoutInSeconds: timeoutInSeconds))
+            tempTableName = $"{prefix}_{Guid.NewGuid().ToString().Replace("-", "")}";
+        return tempTableName;
+    }
+
 
     protected async Task<DataTable> GetDataTable(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters)
     {
