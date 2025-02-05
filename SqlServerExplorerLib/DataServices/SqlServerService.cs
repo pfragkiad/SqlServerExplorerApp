@@ -27,7 +27,7 @@ public class SqlServerService
         set => _timeoutInSeconds = Math.Max(value, 0);
     }
 
-    protected async Task<bool> TableExists(string tableName, string tableSchema = "dbo",int? timeoutInSeconds = null )
+    protected async Task<bool> TableExists(string tableName, string tableSchema = "dbo", int? timeoutInSeconds = null)
     {
         /*
 SELECT *
@@ -40,12 +40,24 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return table.Rows.Count > 0;
     }
 
-    protected async Task<string> GetTempTableName(string prefix= "temp", int? timeoutInSeconds = null)
+    protected async Task<string> GetTempTableName(string prefix = "temp", int? timeoutInSeconds = null)
     {
-        string tempTableName = $"{prefix}_{Guid.NewGuid().ToString().Replace("-", "")}";
+        string tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
         while (await TableExists(tempTableName, timeoutInSeconds: timeoutInSeconds))
-            tempTableName = $"{prefix}_{Guid.NewGuid().ToString().Replace("-", "")}";
+            tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
         return tempTableName;
+    }
+
+    protected async Task<string> GetUniqueTableNamePostfix(string prefix = "temp", int? timeoutInSeconds = null)
+    {
+        string guid = Guid.NewGuid().ToString().Replace("-", "");
+        string tempTableName = $"{prefix}{guid}";
+        while (await TableExists(tempTableName, timeoutInSeconds: timeoutInSeconds))
+        {
+            guid = Guid.NewGuid().ToString().Replace("-", "");
+            tempTableName = $"{prefix}{guid}";
+        }
+        return guid;
     }
 
 
@@ -85,7 +97,7 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return dataset;
     }
 
-    protected async Task<T?> GetScalar<T>(string sql, int? timeoutInSeconds=null, params (string parameterName, object value)[] parameters) where T : struct
+    protected async Task<T?> GetScalar<T>(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters) where T : struct
     {
         using var connection = new SqlConnection(_connectionString);
         using var command = new SqlCommand(sql, connection);
@@ -100,7 +112,7 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return (T)result;
     }
 
-    protected async Task<List<T?>> GetList<T>(string sql, int? timeoutInSeconds=null, params (string parameterName, object value)[] parameters) where T : struct
+    protected async Task<List<T?>> GetList<T>(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters) where T : struct
     {
         using var connection = new SqlConnection(_connectionString);
         using var command = new SqlCommand(sql, connection);
@@ -122,7 +134,7 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return list;
     }
 
-    protected async Task<List<string?>> GetStringList(string sql, int? timeoutInSeconds= null, params (string parameterName, object value)[] parameters)
+    protected async Task<List<string?>> GetStringList(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters)
     {
         using var connection = new SqlConnection(_connectionString);
         using var command = new SqlCommand(sql, connection);
