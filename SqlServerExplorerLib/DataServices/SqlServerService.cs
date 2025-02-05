@@ -26,6 +26,19 @@ public class SqlServerService
         set => _timeoutInSeconds = Math.Max(value, 0);
     }
 
+    protected async Task<bool> TableExists(string tableName, string tableSchema = "dbo",int? timeoutInSeconds = null )
+    {
+        /*
+SELECT *
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
+         */
+
+        string sql = "SELECT top 1 * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tableName AND TABLE_SCHEMA = @tableSchema";
+        DataTable table = await GetDataTable(sql, timeoutInSeconds, parameters: [("@tableName", tableName), ("@tableSchema", tableSchema)]);
+        return table.Rows.Count > 0;
+    }
+
     protected async Task<DataTable> GetDataTable(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters)
     {
         using var connection = new SqlConnection(_connectionString);
