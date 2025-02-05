@@ -40,19 +40,19 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return table.Rows.Count > 0;
     }
 
-    protected async Task<string> GetTempTableName(string prefix = "temp", int? timeoutInSeconds = null)
+    protected async Task<string> GetTempTableName(string prefix = "temp", string tableSchema = "dbo", int? timeoutInSeconds = null)
     {
         string tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
-        while (await TableExists(tempTableName, timeoutInSeconds: timeoutInSeconds))
+        while (await TableExists(tempTableName,tableSchema, timeoutInSeconds: timeoutInSeconds))
             tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
         return tempTableName;
     }
 
-    protected async Task<string> GetUniqueTableNamePostfix(string prefix = "temp", int? timeoutInSeconds = null)
+    protected async Task<string> GetUniqueTableNamePostfix(string prefix = "temp", string tableSchema = "dbo", int? timeoutInSeconds = null)
     {
         string guid = Guid.NewGuid().ToString().Replace("-", "");
         string tempTableName = $"{prefix}{guid}";
-        while (await TableExists(tempTableName, timeoutInSeconds: timeoutInSeconds))
+        while (await TableExists(tempTableName, tableSchema, timeoutInSeconds: timeoutInSeconds))
         {
             guid = Guid.NewGuid().ToString().Replace("-", "");
             tempTableName = $"{prefix}{guid}";

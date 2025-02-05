@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.6.4</Version>
+    <Version>1.6.7</Version>
     <Authors>Pavlos Fragkiadoulakis</Authors>
     <Company>Pavlos Fragkiadoulakis</Company>
     <Copyright>(c) 2023-2025 Paulus Stuff</Copyright>
@@ -13,8 +13,8 @@
     <PackageTags>sql server;datatable;db to txt;explorer</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>1.6.4</AssemblyVersion>
-    <FileVersion>1.6.4</FileVersion>
+    <AssemblyVersion>1.6.7</AssemblyVersion>
+    <FileVersion>1.6.7</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
