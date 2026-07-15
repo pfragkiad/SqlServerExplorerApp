@@ -25,6 +25,11 @@ public static class DataRowExtensions
 
     public static DateTime FoceReadDateTime(this DataRow row, string columnName)
     {
+        return ForceReadDateTime(row, columnName);
+    }
+
+    public static DateTime ForceReadDateTime(this DataRow row, string columnName)
+    {
         return row[columnName] is DBNull ? DateTime.MinValue : row.Field<DateTime>(columnName);
     }
 

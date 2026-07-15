@@ -1,8 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
-
-namespace SqlServerExplorerLib;
+﻿namespace SqlServerExplorerLib;
 
 public class SqlServerTable : IComparable<SqlServerTable>
 {
@@ -15,7 +11,10 @@ public class SqlServerTable : IComparable<SqlServerTable>
         return this.ToString().CompareTo(other?.ToString() ?? "");
     }
 
-    public override string ToString() => $"[{Schema}].[{Name}]";
+    public override string ToString() => $"[{EscapeIdentifier(Schema)}].[{EscapeIdentifier(Name)}]";
 
-    
+    private static string EscapeIdentifier(string identifier)
+    {
+        return identifier.Replace("]", "]]", StringComparison.Ordinal);
+    }
 }

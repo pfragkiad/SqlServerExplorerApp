@@ -52,7 +52,11 @@ public class SqlServerExplorer
 
     public async Task<bool> TableExists(string connectionString, string tableName, int? timeoutInSeconds = null)
     {
-        int? result = await QueryScalar<int?>(connectionString, $"select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{tableName}'",timeoutInSeconds);
+        int? result = await QueryScalar<int?>(
+            connectionString,
+            "select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = @tableName",
+            [new SqlParameter("@tableName", tableName)],
+            timeoutInSeconds);
         return result == 1;
     }
     
@@ -176,7 +180,7 @@ public class SqlServerExplorer
     {
         using SqlConnection target = new(targetConnectionString);
         await target.OpenAsync();
-        SqlBulkCopy copier = new(target)
+        using SqlBulkCopy copier = new(target)
         {
             DestinationTableName = destinationTableName,
             BulkCopyTimeout = this.BulkCopyTimeoutInSeconds,
@@ -262,7 +266,7 @@ public class SqlServerExplorer
         using SqlConnection connection = new(connectionString);
         SqlCommand sql = new(sqlText, connection)
         {
-            CommandTimeout = commandTimeOutInSeconds ??= 30
+            CommandTimeout = commandTimeOutInSeconds ?? 30
         };
         await connection.OpenAsync();
         T? result = (T?)(await sql.ExecuteScalarAsync());
@@ -274,7 +278,7 @@ public class SqlServerExplorer
         using SqlConnection connection = new(connectionString);
         SqlCommand sql = new(sqlText, connection)
         {
-            CommandTimeout = commandTimeOutInSeconds ??= 30
+            CommandTimeout = commandTimeOutInSeconds ?? 30
         };
 
         if (parameters is not null)

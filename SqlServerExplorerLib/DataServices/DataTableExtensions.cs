@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Data;
+﻿using System.Data;
 
 namespace SqlServerExplorerLib.DataServices;
 
@@ -35,7 +34,7 @@ public static class DataTableExtensions
 
         return (string)row[0];
     }
-    )];
+    )] ;
     }
 
     public static List<string?> ToStringList(this DataTable table, bool useEmptyStringForNull)

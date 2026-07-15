@@ -1,7 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using System.Data;
-using System.Security.Cryptography;
 
 namespace SqlServerExplorerLib.DataServices;
 
@@ -43,9 +41,16 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
     protected async Task<string> GetTempTableName(string prefix = "temp", string tableSchema = "dbo", int? timeoutInSeconds = null)
     {
         string tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
-        while (await TableExists(tempTableName,tableSchema, timeoutInSeconds: timeoutInSeconds))
+        while (await TableExists(tempTableName, tableSchema, timeoutInSeconds: timeoutInSeconds))
             tempTableName = $"{prefix}{Guid.NewGuid().ToString().Replace("-", "")}";
         return tempTableName;
+    }
+
+    //Drop table if exists
+    protected async Task DropTableIfExists(string tableName, string tableSchema = "dbo", int? timeoutInSeconds = null)
+    {
+        string sql = $"DROP TABLE IF EXISTS [{tableSchema}].[{tableName}]";
+        await ExecuteNonQuery(sql, timeoutInSeconds);
     }
 
     protected async Task<string> GetUniqueTableNamePostfix(string prefix = "temp", string tableSchema = "dbo", int? timeoutInSeconds = null)
@@ -112,6 +117,17 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         return (T)result;
     }
 
+    protected async Task<int> ExecuteNonQuery(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        using var command = new SqlCommand(sql, connection);
+        command.CommandTimeout = timeoutInSeconds ?? _timeoutInSeconds;
+        foreach (var (parameterName, value) in parameters)
+            command.Parameters.AddWithValue(parameterName, value);
+        connection.Open();
+        return await command.ExecuteNonQueryAsync();
+    }
+
     protected async Task<List<T?>> GetList<T>(string sql, int? timeoutInSeconds = null, params (string parameterName, object value)[] parameters) where T : struct
     {
         using var connection = new SqlConnection(_connectionString);
@@ -160,5 +176,18 @@ WHERE TABLE_NAME = 'sadd' AND TABLE_SCHEMA = 'dbo';
         if (table.Rows.Count == 0)
             return null;
         return table.Rows[0];
+    }
+
+    //BulkCopy from DataTable to SQL Server
+    protected async Task BulkCopy(DataTable dataTable, string destinationTableName, int? timeoutInSeconds = null)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        using var bulkCopy = new SqlBulkCopy(connection)
+        {
+            DestinationTableName = destinationTableName,
+            BulkCopyTimeout = timeoutInSeconds ?? _timeoutInSeconds
+        };
+        await bulkCopy.WriteToServerAsync(dataTable);
     }
 }
